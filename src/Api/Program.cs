@@ -3,6 +3,10 @@ using Serilog;
 using Serilog.Events;
 using Core.DataContext;
 using Api.Filters;
+using Core.Services.Interfaces;
+using Core.Services;
+using Core.Repositories.Interfaces;
+using Core.Repositories;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +25,11 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<CustomExceptionFilter>();
 builder.Services.AddControllers(options =>
 {
     options.Filters.AddService<CustomExceptionFilter>();
