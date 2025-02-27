@@ -23,8 +23,9 @@ public partial class InitialCreate : Migration
                     .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                 name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
-                created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                updated_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                updated_at = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                status = table.Column<bool>(type: "tinyint(1)", nullable: false)
             },
             constraints: table =>
             {
@@ -47,8 +48,9 @@ public partial class InitialCreate : Migration
                 password_hash = table.Column<string>(type: "longtext", nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 role_id = table.Column<int>(type: "int", nullable: false),
-                created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                updated_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                updated_at = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                status = table.Column<bool>(type: "tinyint(1)", nullable: false)
             },
             constraints: table =>
             {
@@ -71,8 +73,9 @@ public partial class InitialCreate : Migration
                 action = table.Column<string>(type: "longtext", nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 user_id = table.Column<int>(type: "int", nullable: false),
-                created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                updated_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                updated_at = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                status = table.Column<bool>(type: "tinyint(1)", nullable: false)
             },
             constraints: table =>
             {
@@ -82,7 +85,7 @@ public partial class InitialCreate : Migration
                     column: x => x.user_id,
                     principalTable: "users",
                     principalColumn: "id",
-                    onDelete: ReferentialAction.Cascade);
+                    onDelete: ReferentialAction.Restrict);
             })
             .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -90,6 +93,12 @@ public partial class InitialCreate : Migration
             name: "IX_user_logs_user_id",
             table: "user_logs",
             column: "user_id");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_users_email",
+            table: "users",
+            column: "email",
+            unique: true);
 
         migrationBuilder.CreateIndex(
             name: "IX_users_role_id",
