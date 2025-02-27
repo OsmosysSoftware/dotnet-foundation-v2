@@ -44,7 +44,7 @@ public class UserService : IUserService
         }
 
         User user = _mapper.Map<User>(userDto);
-        user.PasswordHash = HashPassword(userDto.Password); // Ensure password is hashed
+        user.PasswordHash = HashPassword(userDto.Password);
         user.SetRole(userDto.RoleId);
         return await _userRepository.AddUserAsync(user).ConfigureAwait(false);
     }
