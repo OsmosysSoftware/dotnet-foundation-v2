@@ -2,34 +2,37 @@ using Core.Entities.Models;
 using Core.Repositories.Interfaces;
 using Core.Services.Interfaces;
 using Core.Entities.DTOs;
+using AutoMapper;
 
 namespace Core.Services;
 
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IMapper mapper)
     {
         _userRepository = userRepository;
+        _mapper = mapper;
     }
 
     public async Task<UserResponseDto?> GetUserByIdAsync(int id)
     {
         User? user = await _userRepository.GetUserByIdAsync(id).ConfigureAwait(false);
-        return user == null ? null : MapToUserResponseDto(user);
+        return user == null ? null : _mapper.Map<UserResponseDto>(user);
     }
 
     public async Task<UserResponseDto?> GetUserByEmailAsync(string email)
     {
         User? user = await _userRepository.GetUserByEmailAsync(email).ConfigureAwait(false);
-        return user == null ? null : MapToUserResponseDto(user);
+        return user == null ? null : _mapper.Map<UserResponseDto>(user);
     }
 
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync()
     {
         IEnumerable<User> users = await _userRepository.GetAllUsersAsync().ConfigureAwait(false);
-        return users.Select(MapToUserResponseDto);
+        return _mapper.Map<IEnumerable<UserResponseDto>>(users);
     }
 
     public async Task<bool> AddUserAsync(UserCreateDto userDto)
@@ -40,13 +43,8 @@ public class UserService : IUserService
             return false;
         }
 
-        User user = new User
-        {
-            FirstName = userDto.FirstName,
-            LastName = userDto.LastName,
-            Email = userDto.Email,
-            PasswordHash = HashPassword(userDto.Password)
-        };
+        User user = _mapper.Map<User>(userDto);
+        user.PasswordHash = HashPassword(userDto.Password); // Ensure password is hashed
         user.SetRole(userDto.RoleId);
         return await _userRepository.AddUserAsync(user).ConfigureAwait(false);
     }
@@ -65,9 +63,7 @@ public class UserService : IUserService
             return false;
         }
 
-        user.FirstName = userDto.FirstName;
-        user.LastName = userDto.LastName;
-
+        _mapper.Map(userDto, user);
         user.SetRole(userDto.RoleId);
         return await _userRepository.UpdateUserAsync(user).ConfigureAwait(false);
     }
@@ -86,17 +82,5 @@ public class UserService : IUserService
     private static string HashPassword(string password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password);
-    }
-
-    private static UserResponseDto MapToUserResponseDto(User user)
-    {
-        return new UserResponseDto
-        {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Role = user.Role?.Name ?? "Unknown"
-        };
     }
 }

@@ -1,3 +1,4 @@
+using AutoMapper;
 using Core.Entities.DTOs;
 using Core.Entities.Models;
 using Core.Repositories.Interfaces;
@@ -11,22 +12,24 @@ namespace Core.Services;
 public class RoleService : IRoleService
 {
     private readonly IRoleRepository _roleRepository;
+    private readonly IMapper _mapper;
 
-    public RoleService(IRoleRepository roleRepository)
+    public RoleService(IRoleRepository roleRepository, IMapper mapper)
     {
         _roleRepository = roleRepository;
+        _mapper = mapper;
     }
 
     public async Task<RoleResponseDto?> GetRoleByIdAsync(int id)
     {
         Role? role = await _roleRepository.GetRoleByIdAsync(id).ConfigureAwait(false);
-        return role == null ? null : new RoleResponseDto { Id = role.Id, Name = role.Name };
+        return role == null ? null : _mapper.Map<RoleResponseDto>(role);
     }
 
     public async Task<IEnumerable<RoleResponseDto>> GetAllRolesAsync()
     {
         IEnumerable<Role> roles = await _roleRepository.GetAllRolesAsync().ConfigureAwait(false);
-        return roles.Select(r => new RoleResponseDto { Id = r.Id, Name = r.Name });
+        return _mapper.Map<IEnumerable<RoleResponseDto>>(roles);
     }
 
     public async Task<RoleResponseDto?> CreateRoleAsync(RoleCreateDto roleDto)
@@ -36,10 +39,10 @@ public class RoleService : IRoleService
         {
             return null;
         }
-        Role newRole = new Role { Name = roleDto.Name };
+        Role newRole = _mapper.Map<Role>(roleDto);
 
         Role? createdRole = await _roleRepository.AddRoleAsync(newRole).ConfigureAwait(false);
-        return createdRole == null ? null : new RoleResponseDto { Id = createdRole.Id, Name = createdRole.Name };
+        return createdRole == null ? null : _mapper.Map<RoleResponseDto>(createdRole);
     }
 
     public async Task<bool> UpdateRoleAsync(int id, RoleUpdateDto roleDto)
@@ -56,7 +59,7 @@ public class RoleService : IRoleService
             return false;
         }
 
-        existingRole.Name = roleDto.Name;
+        _mapper.Map(roleDto, existingRole);
         return await _roleRepository.UpdateRoleAsync(existingRole).ConfigureAwait(false);
     }
 
