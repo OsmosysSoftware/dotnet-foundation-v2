@@ -21,6 +21,24 @@ public class DatabaseContext : DbContext
             .WithMany(r => r.Users)
             .HasForeignKey(u => u.RoleId)
             .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of Role if Users exist
+
+        modelBuilder.Entity<UserLog>()
+            .HasOne(log => log.User)
+            .WithMany()
+            .HasForeignKey(log => log.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Global query filter for UserLogs to fetch active records
+        modelBuilder.Entity<UserLog>()
+            .HasQueryFilter(log => log.Status);
+
+        /*
+        // Fetches activer ecords w/o WHERE clause
+        var allLogs = _context.UserLogs.ToList();
+
+        // Query Soft-Deleted Records
+        var allLogsIncludingDeleted = _context.UserLogs.IgnoreQueryFilters().ToList();
+        */
     }
 
     public override int SaveChanges()
@@ -43,13 +61,13 @@ public class DatabaseContext : DbContext
             switch (entry.Entity)
             {
                 case User user:
-                    user.UpdatedAt = DateTime.UtcNow;
+                    user.UpdateTimestamp();
                     break;
                 case Role role:
-                    role.UpdatedAt = DateTime.UtcNow;
+                    role.UpdateTimestamp();
                     break;
                 case UserLog userLog:
-                    userLog.UpdatedAt = DateTime.UtcNow;
+                    userLog.UpdateTimestamp();
                     break;
             }
         }

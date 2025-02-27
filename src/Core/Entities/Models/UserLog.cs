@@ -14,13 +14,25 @@ public class UserLog
     [Required, Column("action")]
     public string Action { get; set; } = string.Empty; // LOGIN, PASSWORD_RESET, etc.
 
-    [ForeignKey("User"), Column("user_id")]
+    [Column("user_id")]
     public int UserId { get; set; }
-    public User? User { get; set; } = null;
+    
+    // Navigation Property (Read-Only to avoid UserId conflicts)
+    [ForeignKey(nameof(UserId))]
+    public virtual User? User { get; private set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     [Column("updated_at")]
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
+
+    // Soft delete
+    [Column("status")]
+    public bool Status { get; set; } = true;
+
+    protected internal void UpdateTimestamp()
+    {
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

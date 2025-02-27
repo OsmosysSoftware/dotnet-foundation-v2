@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Core.Entities.Models;
 
@@ -14,10 +16,20 @@ public class Role
     public string Name { get; set; } = string.Empty;
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     [Column("updated_at")]
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
-    public ICollection<User> Users { get; set; } = new List<User>();
+    // Soft delete
+    [Column("status")]
+    public bool Status { get; set; } = true;
+
+    // Navigation Property
+    public virtual ICollection<User> Users { get; private set; } = new List<User>();
+
+    protected internal void UpdateTimestamp()
+    {
+        UpdatedAt = DateTime.UtcNow;
+    }
 }
