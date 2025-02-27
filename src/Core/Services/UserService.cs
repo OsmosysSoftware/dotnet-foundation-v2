@@ -39,12 +39,9 @@ public class UserService : IUserService
             FirstName = userDto.FirstName,
             LastName = userDto.LastName,
             Email = userDto.Email,
-            PasswordHash = HashPassword(userDto.Password),
-            RoleId = userDto.RoleId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            PasswordHash = HashPassword(userDto.Password)
         };
-
+        user.SetRole(userDto.RoleId);
         return await _userRepository.AddUserAsync(user).ConfigureAwait(false);
     }
 
@@ -58,9 +55,8 @@ public class UserService : IUserService
 
         user.FirstName = userDto.FirstName;
         user.LastName = userDto.LastName;
-        user.RoleId = userDto.RoleId;
-        user.UpdatedAt = DateTime.UtcNow;
 
+        user.SetRole(userDto.RoleId);
         return await _userRepository.UpdateUserAsync(user).ConfigureAwait(false);
     }
 
