@@ -11,6 +11,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Api.HealthChecks;
 using Core.Mappings;
+using Core.Mappings;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
