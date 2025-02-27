@@ -1,5 +1,4 @@
 using Core.Entities.DTOs;
-using Core.Entities.Models;
 using Core.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,21 +18,21 @@ public class UserController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {
-        Core.Entities.DTOs.UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
+        UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
         return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
     }
 
     [HttpGet("email/{email}")]
     public async Task<IActionResult> GetUserByEmail(string email)
     {
-        Core.Entities.DTOs.UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
+        UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
         return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
-        IEnumerable<Core.Entities.DTOs.UserResponseDto> users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
+        IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
         return Ok(users);
     }
 
