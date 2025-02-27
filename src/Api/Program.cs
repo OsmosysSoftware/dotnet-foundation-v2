@@ -10,6 +10,7 @@ using Core.Repositories;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Api.HealthChecks;
+using Core.Mappings;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,13 @@ builder.Services.AddScoped<CustomExceptionFilter>();
 builder.Services.AddControllers(options =>
 {
     options.Filters.AddService<CustomExceptionFilter>();
+});
+
+// Add AutoMapper and include your mapping profile
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<RoleMappingProfile>();
+    cfg.AddProfile<UserMappingProfile>();
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
