@@ -1,20 +1,29 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Core.Entities.DTOs;
 
-public class UserCreateDto
+public class UserBaseDto
 {
+    [Required, MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
+    
+    [Required, MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
+    
+    [Required, EmailAddress, MaxLength(255)]
     public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+
+    [Required]
     public int RoleId { get; set; }
 }
 
-public class UserUpdateDto
+public class UserCreateDto : UserBaseDto
 {
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public int RoleId { get; set; }
+    [Required, MinLength(8)]
+    public string Password { get; set; } = string.Empty;
 }
+
+public class UserUpdateDto : UserBaseDto { }
 
 public class UserResponseDto
 {
