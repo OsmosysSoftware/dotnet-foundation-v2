@@ -60,7 +60,7 @@ public class UserService : IUserService
         }
 
         User? existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email).ConfigureAwait(false);
-        if (existingUser != null)
+        if (existingUser != null && existingUser.Id != user.Id)
         {
             return false;
         }
