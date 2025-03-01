@@ -83,14 +83,7 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private static JsonSerializerOptions SendJsonResponse()
-    {
-        return new JsonSerializerOptions
-        {
-            Converters = { new JsonStringEnumConverter() },
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-    }
+    private JsonSerializerOptions SendJsonResponse() => _jsonOptions;
 
     private async Task HandleExceptionAsync(HttpContext context, int statusCode, string message)
     {
