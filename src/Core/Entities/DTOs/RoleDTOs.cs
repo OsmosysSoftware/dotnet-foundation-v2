@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Core.Entities.DTOs;
 
-public class RoleBaseDto
+public abstract class RoleBaseDto
 {
     [Required(ErrorMessage = "Role name is required")]
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Role name must be between 2 and 50 characters")]
