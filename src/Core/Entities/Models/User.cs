@@ -21,7 +21,7 @@ public class User
     [Required, EmailAddress, MaxLength(255), Column("email")]
     public string Email { get; set; } = string.Empty;
 
-    [Required, Column("password_hash")]
+    [Required, MaxLength(255), Column("password_hash")]
     public string PasswordHash { get; set; } = string.Empty;
 
     // Foreign Key for Role
