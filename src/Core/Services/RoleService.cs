@@ -32,7 +32,7 @@ public class RoleService : IRoleService
     public async Task<RoleResponseDto?> CreateRoleAsync(RoleCreateDto roleDto)
     {
         Role? existingRole = await _roleRepository.GetRoleByNameAsync(roleDto.Name).ConfigureAwait(false);
-        if (existingRole == null)
+        if (existingRole != null)
         {
             return null;
         }
