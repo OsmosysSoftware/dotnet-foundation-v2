@@ -34,6 +34,12 @@ public class UserService : IUserService
 
     public async Task<bool> AddUserAsync(UserCreateDto userDto)
     {
+        User? existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email).ConfigureAwait(false);
+        if (existingUser != null)
+        {
+            return false;
+        }
+
         User user = new User
         {
             FirstName = userDto.FirstName,
@@ -49,6 +55,12 @@ public class UserService : IUserService
     {
         User? user = await _userRepository.GetUserByIdAsync(id).ConfigureAwait(false);
         if (user == null)
+        {
+            return false;
+        }
+
+        User? existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email).ConfigureAwait(false);
+        if (existingUser != null)
         {
             return false;
         }
