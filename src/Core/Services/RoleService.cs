@@ -31,6 +31,11 @@ public class RoleService : IRoleService
 
     public async Task<RoleResponseDto?> CreateRoleAsync(RoleCreateDto roleDto)
     {
+        Role? existingRole = await _roleRepository.GetRoleByNameAsync(roleDto.Name).ConfigureAwait(false);
+        if (existingRole == null)
+        {
+            return null;
+        }
         Role newRole = new Role { Name = roleDto.Name };
 
         Role? createdRole = await _roleRepository.AddRoleAsync(newRole).ConfigureAwait(false);
@@ -41,6 +46,12 @@ public class RoleService : IRoleService
     {
         Role? existingRole = await _roleRepository.GetRoleByIdAsync(id).ConfigureAwait(false);
         if (existingRole == null)
+        {
+            return false;
+        }
+
+        Role? existingRoleName = await _roleRepository.GetRoleByNameAsync(roleDto.Name).ConfigureAwait(false);
+        if (existingRoleName == null)
         {
             return false;
         }

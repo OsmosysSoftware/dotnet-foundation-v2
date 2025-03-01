@@ -5,6 +5,7 @@ namespace Core.Repositories.Interfaces;
 public interface IRoleRepository
 {
     Task<Role?> GetRoleByIdAsync(int id);
+    Task<Role?> GetRoleByNameAsync(string name);
     Task<IEnumerable<Role>> GetAllRolesAsync();
     Task<Role?> AddRoleAsync(Role role);
     Task<bool> UpdateRoleAsync(Role role);

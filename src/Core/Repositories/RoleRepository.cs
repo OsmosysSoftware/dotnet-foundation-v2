@@ -21,6 +21,11 @@ public class RoleRepository : IRoleRepository
         return await _context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id).ConfigureAwait(false);
     }
 
+    public async Task<Role?> GetRoleByNameAsync(string name)
+    {
+        return await _context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).ConfigureAwait(false);
+    }
+
     public async Task<IEnumerable<Role>> GetAllRolesAsync()
     {
         return await _context.Roles.AsNoTracking().ToListAsync().ConfigureAwait(false);
