@@ -50,8 +50,8 @@ public class RoleService : IRoleService
             return false;
         }
 
-        Role? existingRoleName = await _roleRepository.GetRoleByNameAsync(roleDto.Name).ConfigureAwait(false);
-        if (existingRoleName == null)
+        Role? roleWithSameName = await _roleRepository.GetRoleByNameAsync(roleDto.Name).ConfigureAwait(false);
+        if (roleWithSameName != null && roleWithSameName.Id != id)
         {
             return false;
         }
