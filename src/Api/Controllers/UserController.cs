@@ -1,3 +1,5 @@
+using Api.Models.Common;
+using Api.Models.Enums;
 using Core.Entities.DTOs;
 using Core.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -16,54 +18,181 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetUserById(int id)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserById(int id)
     {
-        UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
-        return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
+        {
+            Message = "User not found"
+        };
+        try
+        {
+            UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
+            if (user != null)
+            {
+                response.Status = ResponseStatus.Success;
+                response.Data = user;
+                response.Message = "User retrieved successfully";
+            }
+            return user == null ? NotFound(response) : Ok(response);
+        }
+        catch (Exception ex)
+        {
+            response.Status = ResponseStatus.Error;
+            response.Message = "An unexpected error occurred.";
+            response.StackTrace = ex.StackTrace;
+            return StatusCode(500, response);
+        }
     }
 
     [HttpGet("email/{email}")]
-    public async Task<IActionResult> GetUserByEmail(string email)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserByEmail(string email)
     {
-        UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
-        return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
+        {
+            Message = "User not found"
+        };
+        try
+        {
+            UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
+            if (user != null)
+            {
+                response.Status = ResponseStatus.Success;
+                response.Data = user;
+                response.Message = "User retrieved successfully";
+            }
+            return user == null ? NotFound(response) : Ok(response);
+        }
+        catch (Exception ex)
+        {
+            response.Status = ResponseStatus.Error;
+            response.Message = "An unexpected error occurred.";
+            response.StackTrace = ex.StackTrace;
+            return StatusCode(500, response);
+        }
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllUsers()
+    public async Task<ActionResult<BaseResponse<IEnumerable<UserResponseDto>>>> GetAllUsers()
     {
-        IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
-        return Ok(users);
+        BaseResponse<IEnumerable<UserResponseDto>> response = new(ResponseStatus.Fail)
+        {
+            Message = "No users found"
+        };
+        try
+        {
+            IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
+            if (users.Any())
+            {
+                response.Status = ResponseStatus.Success;
+                response.Data = users;
+                response.Message = "Users retrieved successfully";
+            }
+
+            return users.Any() ? Ok(response) : NotFound(response);
+        }
+        catch (Exception ex)
+        {
+            response.Status = ResponseStatus.Error;
+            response.Message = "An unexpected error occurred.";
+            response.StackTrace = ex.StackTrace;
+            return StatusCode(500, response);
+        }
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterUser([FromBody] UserCreateDto userDto)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> RegisterUser([FromBody] UserCreateDto userDto)
     {
-        if (!ModelState.IsValid)
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
         {
-            return BadRequest(ModelState);
-        }
+            Message = "Failed to register user"
+        };
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
+            }
 
-        bool success = await _userService.AddUserAsync(userDto).ConfigureAwait(false);
-        return success ? StatusCode(201, new { message = "User registered successfully" }) : BadRequest(new { message = "Failed to register user" });
+            UserResponseDto? createdUser = await _userService.AddUserAsync(userDto).ConfigureAwait(false);
+            if (createdUser != null)
+            {
+                response.Status = ResponseStatus.Success;
+                response.Data = createdUser;
+                response.Message = "User registered successfully";
+            }
+
+            return createdUser == null ? BadRequest(response) : Ok(response);
+        }
+        catch (Exception ex)
+        {
+            response.Status = ResponseStatus.Error;
+            response.Message = "An unexpected error occurred.";
+            response.StackTrace = ex.StackTrace;
+            return StatusCode(500, response);
+        }
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDto userDto)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> UpdateUser(int id, [FromBody] UserUpdateDto userDto)
     {
-        if (!ModelState.IsValid)
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
         {
-            return BadRequest(ModelState);
-        }
+            Message = "User update failed"
+        };
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
+            }
 
-        bool success = await _userService.UpdateUserAsync(id, userDto).ConfigureAwait(false);
-        return success ? NoContent() : NotFound(new { message = "User not found or update failed" });
+            UserResponseDto? updatedUser = await _userService.UpdateUserAsync(id, userDto).ConfigureAwait(false);
+            if (updatedUser == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            response.Status = ResponseStatus.Success;
+            response.Data = updatedUser;
+            response.Message = "User updated successfully";
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            response.Status = ResponseStatus.Error;
+            response.Message = "An unexpected error occurred.";
+            response.StackTrace = ex.StackTrace;
+            return StatusCode(500, response);
+        }
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(int id)
+    public async Task<ActionResult<BaseResponse<bool>>> DeleteUser(int id)
     {
-        bool success = await _userService.DeleteUserAsync(id).ConfigureAwait(false);
-        return success ? NoContent() : NotFound(new { message = "User not found or deletion failed" });
+        BaseResponse<bool> response = new(ResponseStatus.Fail)
+        {
+            Message = "User deletion failed"
+        };
+        try
+        {
+            bool isDeleted = await _userService.DeleteUserAsync(id).ConfigureAwait(false);
+            if (!isDeleted)
+            {
+                response.Message = "User not found";
+                return NotFound(response);
+            }
+
+            response.Status = ResponseStatus.Success;
+            response.Data = true;
+            response.Message = "User deleted successfully";
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            response.Status = ResponseStatus.Error;
+            response.Message = "An unexpected error occurred.";
+            response.StackTrace = ex.StackTrace;
+            return StatusCode(500, response);
+        }
     }
 }

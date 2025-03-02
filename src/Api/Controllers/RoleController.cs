@@ -31,7 +31,7 @@ public class RoleController : ControllerBase
             {
                 response.Status = ResponseStatus.Success;
                 response.Data = role;
-                response.Message = "Role created successfully";
+                response.Message = "Role retrieved successfully";
             }
 
             return role == null ? NotFound(response) : Ok(response);
@@ -95,7 +95,7 @@ public class RoleController : ControllerBase
                 response.Message = "Role created successfully";
             }
 
-            return createdRole == null ? BadRequest(response) : Ok(createdRole);
+            return createdRole == null ? BadRequest(response) : Ok(response);
         }
         catch (Exception ex)
         {
