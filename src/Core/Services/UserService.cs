@@ -35,37 +35,39 @@ public class UserService : IUserService
         return _mapper.Map<IEnumerable<UserResponseDto>>(users);
     }
 
-    public async Task<bool> AddUserAsync(UserCreateDto userDto)
+    public async Task<UserResponseDto?> AddUserAsync(UserCreateDto userDto)
     {
         User? existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email).ConfigureAwait(false);
         if (existingUser != null)
         {
-            return false;
+            return null;
         }
 
         User user = _mapper.Map<User>(userDto);
         user.PasswordHash = HashPassword(userDto.Password);
         user.SetRole(userDto.RoleId);
-        return await _userRepository.AddUserAsync(user).ConfigureAwait(false);
+        User? createdUser = await _userRepository.AddUserAsync(user).ConfigureAwait(false);
+        return createdUser == null ? null : _mapper.Map<UserResponseDto>(createdUser);
     }
 
-    public async Task<bool> UpdateUserAsync(int id, UserUpdateDto userDto)
+    public async Task<UserResponseDto?> UpdateUserAsync(int id, UserUpdateDto userDto)
     {
         User? user = await _userRepository.GetUserByIdAsync(id).ConfigureAwait(false);
         if (user == null)
         {
-            return false;
+            return null;
         }
 
         User? existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email).ConfigureAwait(false);
         if (existingUser != null && existingUser.Id != user.Id)
         {
-            return false;
+            return null;
         }
 
         _mapper.Map(userDto, user);
         user.SetRole(userDto.RoleId);
-        return await _userRepository.UpdateUserAsync(user).ConfigureAwait(false);
+        User? updatedUser = await _userRepository.UpdateUserAsync(user).ConfigureAwait(false);
+        return updatedUser == null ? null : _mapper.Map<UserResponseDto>(updatedUser);
     }
 
     public async Task<bool> DeleteUserAsync(int id)

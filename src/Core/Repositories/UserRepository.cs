@@ -28,16 +28,18 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.Include(u => u.Role).AsNoTracking().ToListAsync().ConfigureAwait(false);
     }
-    public async Task<bool> AddUserAsync(User user)
+    public async Task<User?> AddUserAsync(User user)
     {
         await _context.Users.AddAsync(user).ConfigureAwait(false);
-        return await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+        bool success = await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+        return success ? user : null;
     }
 
-    public async Task<bool> UpdateUserAsync(User user)
+    public async Task<User?> UpdateUserAsync(User user)
     {
         _context.Users.Update(user);
-        return await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+        bool success = await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+        return success ? user : null;
     }
 
     public async Task<bool> DeleteUserAsync(User user)
