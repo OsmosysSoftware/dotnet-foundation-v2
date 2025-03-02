@@ -38,10 +38,11 @@ public class RoleRepository : IRoleRepository
         return success ? role : null;
     }
 
-    public async Task<bool> UpdateRoleAsync(Role role)
+    public async Task<Role?> UpdateRoleAsync(Role role)
     {
         _context.Roles.Update(role);
-        return await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+        bool success = await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
+        return success ? role : null;
     }
 
     public async Task<bool> DeleteRoleAsync(Role role)

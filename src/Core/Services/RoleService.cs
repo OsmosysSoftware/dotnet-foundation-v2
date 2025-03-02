@@ -45,22 +45,23 @@ public class RoleService : IRoleService
         return createdRole == null ? null : _mapper.Map<RoleResponseDto>(createdRole);
     }
 
-    public async Task<bool> UpdateRoleAsync(int id, RoleUpdateDto roleDto)
+    public async Task<RoleResponseDto?> UpdateRoleAsync(int id, RoleUpdateDto roleDto)
     {
         Role? existingRole = await _roleRepository.GetRoleByIdAsync(id).ConfigureAwait(false);
         if (existingRole == null)
         {
-            return false;
+            return null;
         }
 
         Role? roleWithSameName = await _roleRepository.GetRoleByNameAsync(roleDto.Name).ConfigureAwait(false);
         if (roleWithSameName != null && roleWithSameName.Id != id)
         {
-            return false;
+            return null;
         }
 
         _mapper.Map(roleDto, existingRole);
-        return await _roleRepository.UpdateRoleAsync(existingRole).ConfigureAwait(false);
+        Role? updatedRole = await _roleRepository.UpdateRoleAsync(existingRole).ConfigureAwait(false);
+        return updatedRole == null ? null : _mapper.Map<RoleResponseDto>(updatedRole);
     }
 
     public async Task<bool> DeleteRoleAsync(int id)
