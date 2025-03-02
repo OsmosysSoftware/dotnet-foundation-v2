@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Api.Models.Enums;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Api.Models.Common;
 
@@ -52,21 +53,19 @@ public class BaseResponse<T>
 public class ModelValidationBadRequest
 {
     /// <summary>
-    /// Generates a BadRequestObjectResult based on the model state errors.
+    /// Generates a standardized BadRequest response with model validation errors.
     /// </summary>
-    /// <param name="actionContext">The action context containing the model state.</param>
+    /// <param name="modelState">The model state containing validation errors.</param>
     /// <returns>A BadRequestObjectResult encapsulating the validation errors.</returns>
-    public static BadRequestObjectResult ModelValidationErrorResponse(ActionContext actionContext)
+    public static BadRequestObjectResult GenerateErrorResponse(ModelStateDictionary modelState)
     {
         return new BadRequestObjectResult(new BaseResponse<int>(ResponseStatus.Error)
         {
-            Errors = actionContext.ModelState
-                .Where(modelError => modelError.Value != null && modelError.Value.Errors.Any())
+            Errors = modelState
+                .Where(entry => entry.Value != null && entry.Value.Errors.Any())
                 .ToDictionary(
-                    modelError => modelError.Key,
-                    modelError => modelError.Value != null
-                            ? modelError.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                            : new List<string>()
+                    entry => entry.Key,
+                    entry => entry.Value!.Errors.Select(error => error.ErrorMessage).ToList()
                 )
         });
     }
