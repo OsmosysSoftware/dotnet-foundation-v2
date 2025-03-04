@@ -24,9 +24,21 @@ public class UserRepository : IUserRepository
         return await _context.Users.Include(u => u.Role).AsNoTracking().FirstOrDefaultAsync(u => u.Email == email).ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    public async Task<int> GetTotalUsersCountAsync()
     {
-        return await _context.Users.Include(u => u.Role).AsNoTracking().ToListAsync().ConfigureAwait(false);
+        return await _context.Users.CountAsync().ConfigureAwait(false);
+    }
+
+    public async Task<IEnumerable<User>> GetAllUsersAsync(int pageNumber, int pageSize)
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .AsNoTracking()
+            .OrderBy(u => u.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
     public async Task<User?> AddUserAsync(User user)
     {

@@ -26,9 +26,14 @@ public class RoleService : IRoleService
         return role == null ? null : _mapper.Map<RoleResponseDto>(role);
     }
 
-    public async Task<IEnumerable<RoleResponseDto>> GetAllRolesAsync()
+    public async Task<int> GetTotalRolesCountAsync()
     {
-        IEnumerable<Role> roles = await _roleRepository.GetAllRolesAsync().ConfigureAwait(false);
+        return await _roleRepository.GetTotalRolesCountAsync().ConfigureAwait(false);
+    }
+
+    public async Task<IEnumerable<RoleResponseDto>> GetAllRolesAsync(int pageNumber, int pageSize)
+    {
+        IEnumerable<Role> roles = await _roleRepository.GetAllRolesAsync(pageNumber, pageSize).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<RoleResponseDto>>(roles);
     }
 
