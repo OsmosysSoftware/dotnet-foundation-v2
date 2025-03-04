@@ -2,6 +2,7 @@ using Api.Models.Common;
 using Api.Models.Enums;
 using Core.Entities.DTOs;
 using Core.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -17,6 +18,7 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserById(int id)
     {
@@ -44,6 +46,7 @@ public class UserController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpGet("email/{email}")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserByEmail(string email)
     {
@@ -71,6 +74,7 @@ public class UserController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<BaseResponse<IEnumerable<UserResponseDto>>>> GetAllUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
@@ -111,6 +115,20 @@ public class UserController : ControllerBase
         }
     }
 
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto loginDto)
+    {
+        string? token = await _userService.Login(loginDto.Email, loginDto.Password).ConfigureAwait(false);
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return Unauthorized(new { message = "Invalid credentials" });
+        }
+
+        return Ok(new { token });
+    }
+
+
     [HttpPost("register")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> RegisterUser([FromBody] UserCreateDto userDto)
     {
@@ -144,6 +162,7 @@ public class UserController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> UpdateUser(int id, [FromBody] UserUpdateDto userDto)
     {
@@ -178,6 +197,7 @@ public class UserController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteUser(int id)
     {
