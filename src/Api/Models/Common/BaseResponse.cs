@@ -72,27 +72,37 @@ public class ModelValidationBadRequest
 }
 
 /// <summary>
-/// Provides utilities for generating bad request responses based on model validation errors.
+/// Represents metadata for paginated responses, including page details and navigation indicators.
 /// </summary>
 public class PaginationMetadata
 {
+    /// <summary>
+    /// Gets or sets the current page number.
+    /// </summary>
+    public int PageNumber { get; set; }
+
     /// <summary>
     /// Gets or sets the number of items per page.
     /// </summary>
     public int PageSize { get; set; }
 
     /// <summary>
-    /// Gets or sets the total count of items (if available).
+    /// Gets or sets the total number of items.
     /// </summary>
-    public int? TotalCount { get; set; }
+    public int TotalCount { get; set; }
 
     /// <summary>
-    /// Gets or sets the cursor for the previous page.
+    /// Gets or sets the total number of pages.
     /// </summary>
-    public DateTime? PrevCursor { get; set; }
+    public int TotalPages { get; set; }
 
     /// <summary>
-    /// Gets or sets the cursor for the next page.
+    /// Gets or sets a value indicating whether there is a previous page.
     /// </summary>
-    public DateTime? NextCursor { get; set; }
+    public bool HasPreviousPage { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether there is a next page.
+    /// </summary>
+    public bool HasNextPage { get; set; }
 }
