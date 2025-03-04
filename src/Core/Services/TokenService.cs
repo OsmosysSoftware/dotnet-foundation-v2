@@ -20,7 +20,6 @@ public class TokenService : ITokenService
     public string GenerateToken(User user)
     {
         IConfigurationSection jwtSettings = _configuration.GetSection("JwtSettings");
-
         SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -34,10 +33,16 @@ public class TokenService : ITokenService
             claims.Add(new Claim(ClaimTypes.Role, user.Role.Name));
         }
 
+        string? expiryMinutes = jwtSettings["ExpiryMinutes"];
+        if (string.IsNullOrEmpty(expiryMinutes) || !double.TryParse(expiryMinutes, out double minutes))
+        {
+            throw new InvalidOperationException("JWT ExpiryMinutes is not properly configured");
+        }
+
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["ExpiryMinutes"]!)),
+            Expires = DateTime.UtcNow.AddMinutes(minutes),
             Issuer = jwtSettings["Issuer"],
             Audience = jwtSettings["Audience"],
             SigningCredentials = credentials
