@@ -8,13 +8,26 @@ namespace Core.Services;
 
 public class UserService : IUserService
 {
+    private readonly ITokenService _tokenService;
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository, IMapper mapper)
+    public UserService(ITokenService tokenService, IUserRepository userRepository, IMapper mapper)
     {
+        _tokenService = tokenService;
         _userRepository = userRepository;
         _mapper = mapper;
+    }
+
+    public async Task<string?> Login(string email, string password)
+    {
+        User? user = await _userRepository.GetUserByEmailAsync(email).ConfigureAwait(false);
+        if (user == null || !VerifyPassword(password, user.PasswordHash))
+        {
+            return null;
+        }
+
+        return _tokenService.GenerateToken(user);
     }
 
     public async Task<UserResponseDto?> GetUserByIdAsync(int id)
@@ -89,5 +102,10 @@ public class UserService : IUserService
     private static string HashPassword(string password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password);
+    }
+
+    private static bool VerifyPassword(string password, string hashedPassword)
+    {
+        return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
     }
 }
