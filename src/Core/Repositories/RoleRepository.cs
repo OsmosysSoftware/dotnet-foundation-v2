@@ -26,9 +26,20 @@ public class RoleRepository : IRoleRepository
         return await _context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Name.ToLower() == name.ToLower()).ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<Role>> GetAllRolesAsync()
+    public async Task<int> GetTotalRolesCountAsync()
     {
-        return await _context.Roles.AsNoTracking().ToListAsync().ConfigureAwait(false);
+        return await _context.Roles.CountAsync().ConfigureAwait(false);
+    }
+
+    public async Task<IEnumerable<Role>> GetAllRolesAsync(int pageNumber, int pageSize)
+    {
+        return await _context.Roles
+            .AsNoTracking()
+            .OrderBy(r => r.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
 
     public async Task<Role?> AddRoleAsync(Role role)

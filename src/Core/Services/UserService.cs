@@ -29,9 +29,14 @@ public class UserService : IUserService
         return user == null ? null : _mapper.Map<UserResponseDto>(user);
     }
 
-    public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync()
+    public async Task<int> GetTotalUsersCountAsync()
     {
-        IEnumerable<User> users = await _userRepository.GetAllUsersAsync().ConfigureAwait(false);
+        return await _userRepository.GetTotalUsersCountAsync().ConfigureAwait(false);
+    }
+
+    public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(int pageNumber, int pageSize)
+    {
+        IEnumerable<User> users = await _userRepository.GetAllUsersAsync(pageNumber, pageSize).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<UserResponseDto>>(users);
     }
 

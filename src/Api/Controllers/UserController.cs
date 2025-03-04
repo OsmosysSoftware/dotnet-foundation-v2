@@ -72,7 +72,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<BaseResponse<IEnumerable<UserResponseDto>>>> GetAllUsers()
+    public async Task<ActionResult<BaseResponse<IEnumerable<UserResponseDto>>>> GetAllUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         BaseResponse<IEnumerable<UserResponseDto>> response = new(ResponseStatus.Fail)
         {
@@ -80,12 +80,24 @@ public class UserController : ControllerBase
         };
         try
         {
-            IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
+            IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync(pageNumber, pageSize).ConfigureAwait(false);
+            int totalCount = await _userService.GetTotalUsersCountAsync().ConfigureAwait(false);
             if (users.Any())
             {
+                int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
                 response.Status = ResponseStatus.Success;
                 response.Data = users;
                 response.Message = "Users retrieved successfully";
+                response.Pagination = new PaginationMetadata
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalCount = totalCount,
+                    TotalPages = totalPages,
+                    HasPreviousPage = pageNumber > 1,
+                    HasNextPage = pageNumber < totalPages
+                };
             }
 
             return users.Any() ? Ok(response) : NotFound(response);

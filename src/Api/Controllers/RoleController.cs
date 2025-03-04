@@ -46,7 +46,7 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<BaseResponse<IEnumerable<RoleResponseDto>>>> GetAllRoles()
+    public async Task<ActionResult<BaseResponse<IEnumerable<RoleResponseDto>>>> GetAllRoles([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         BaseResponse<IEnumerable<RoleResponseDto>> response = new(ResponseStatus.Fail)
         {
@@ -54,12 +54,24 @@ public class RoleController : ControllerBase
         };
         try
         {
-            IEnumerable<RoleResponseDto> roles = await _roleService.GetAllRolesAsync().ConfigureAwait(false);
+            IEnumerable<RoleResponseDto> roles = await _roleService.GetAllRolesAsync(pageNumber, pageSize).ConfigureAwait(false);
+            int totalCount = await _roleService.GetTotalRolesCountAsync().ConfigureAwait(false);
             if (roles.Any())
             {
+                int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
                 response.Status = ResponseStatus.Success;
                 response.Data = roles;
                 response.Message = "Roles retrieved successfully";
+                response.Pagination = new PaginationMetadata
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalCount = totalCount,
+                    TotalPages = totalPages,
+                    HasPreviousPage = pageNumber > 1,
+                    HasNextPage = pageNumber < totalPages
+                };
             }
 
             return roles.Any() ? Ok(response) : NotFound(response);
