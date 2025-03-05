@@ -24,7 +24,7 @@ public class UserController : ControllerBase
     {
         BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
         UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
-        
+
         response.Data = user;
         response.Message = "User retrieved successfully";
         return Ok(response);
@@ -36,7 +36,7 @@ public class UserController : ControllerBase
     {
         BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
         UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
-        
+
         response.Data = user;
         response.Message = "User retrieved successfully";
         return Ok(response);

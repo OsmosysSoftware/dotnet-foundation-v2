@@ -37,7 +37,7 @@ public class UserService : IUserService
     {
         if (id <= 0)
         {
-            throw new BadRequestException("Id should be greatere than 0.");
+            throw new BadRequestException("Id should be greater than 0.");
         }
         User? user = await _userRepository.GetUserByIdAsync(id).ConfigureAwait(false);
         if (user == null)
