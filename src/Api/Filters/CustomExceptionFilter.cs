@@ -5,12 +5,6 @@ using Api.Models.Enums;
 using Core.Exceptions;
 using Microsoft.AspNetCore.Http;
 
-// /*
-// Added to suppress the following warning :
-// Warning : Add a public read-only property accessor for positional argument logger of Attribute CustomExceptionFilter
-// */
-// #pragma warning disable CA1019
-
 namespace Api.Filters;
 
 public class CustomExceptionFilter : ExceptionFilterAttribute
@@ -24,7 +18,7 @@ public class CustomExceptionFilter : ExceptionFilterAttribute
 
     public override void OnException(ExceptionContext context)
     {
-        BaseResponse<int> response = new BaseResponse<int>(ResponseStatus.Error);
+        BaseResponse<int> response = new BaseResponse<int>(ResponseStatus.Fail);
 
         (int statusCode, string message) = context.Exception switch
         {
