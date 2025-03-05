@@ -10,12 +10,14 @@ namespace Core.Services;
 public class UserService : IUserService
 {
     private readonly ITokenService _tokenService;
+    private readonly IRoleRepository _roleRepository;
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
 
-    public UserService(ITokenService tokenService, IUserRepository userRepository, IMapper mapper)
+    public UserService(ITokenService tokenService, IRoleRepository roleRepository, IUserRepository userRepository, IMapper mapper)
     {
         _tokenService = tokenService;
+        _roleRepository = roleRepository;
         _userRepository = userRepository;
         _mapper = mapper;
     }
@@ -78,6 +80,12 @@ public class UserService : IUserService
         if (existingUser != null)
         {
             throw new AlreadyExistsException($"User with email {userDto.Email} already exists.");
+        }
+
+        Role? role = await _roleRepository.GetRoleByIdAsync(userDto.RoleId).ConfigureAwait(false);
+        if (role == null)
+        {
+            throw new NotFoundException($"Role with ID {userDto.RoleId} not found.");
         }
 
         User user = _mapper.Map<User>(userDto);
