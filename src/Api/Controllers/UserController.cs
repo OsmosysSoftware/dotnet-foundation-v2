@@ -22,109 +22,53 @@ public class UserController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserById(int id)
     {
-        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
-        {
-            Message = "User not found"
-        };
-        try
-        {
-            UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
-            if (user != null)
-            {
-                response.Status = ResponseStatus.Success;
-                response.Data = user;
-                response.Message = "User retrieved successfully";
-            }
-            return user == null ? NotFound(response) : Ok(response);
-        }
-        catch (Exception ex)
-        {
-            response.Status = ResponseStatus.Error;
-            response.Message = "An unexpected error occurred.";
-            response.StackTrace = ex.StackTrace;
-            return StatusCode(500, response);
-        }
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
+        UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
+        
+        response.Data = user;
+        response.Message = "User retrieved successfully";
+        return Ok(response);
     }
 
     [Authorize]
     [HttpGet("email/{email}")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserByEmail(string email)
     {
-        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
-        {
-            Message = "User not found"
-        };
-        try
-        {
-            UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
-            if (user != null)
-            {
-                response.Status = ResponseStatus.Success;
-                response.Data = user;
-                response.Message = "User retrieved successfully";
-            }
-            return user == null ? NotFound(response) : Ok(response);
-        }
-        catch (Exception ex)
-        {
-            response.Status = ResponseStatus.Error;
-            response.Message = "An unexpected error occurred.";
-            response.StackTrace = ex.StackTrace;
-            return StatusCode(500, response);
-        }
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
+        UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
+        
+        response.Data = user;
+        response.Message = "User retrieved successfully";
+        return Ok(response);
     }
 
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<BaseResponse<IEnumerable<UserResponseDto>>>> GetAllUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        BaseResponse<IEnumerable<UserResponseDto>> response = new(ResponseStatus.Fail)
+        BaseResponse<IEnumerable<UserResponseDto>> response = new(ResponseStatus.Success);
+        IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync(pageNumber, pageSize).ConfigureAwait(false);
+        int totalCount = await _userService.GetTotalUsersCountAsync().ConfigureAwait(false);
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        response.Data = users;
+        response.Message = "Users retrieved successfully";
+        response.Pagination = new PaginationMetadata
         {
-            Message = "No users found"
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasPreviousPage = pageNumber > 1,
+            HasNextPage = pageNumber < totalPages
         };
-        try
-        {
-            IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync(pageNumber, pageSize).ConfigureAwait(false);
-            int totalCount = await _userService.GetTotalUsersCountAsync().ConfigureAwait(false);
-            if (users.Any())
-            {
-                int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-
-                response.Status = ResponseStatus.Success;
-                response.Data = users;
-                response.Message = "Users retrieved successfully";
-                response.Pagination = new PaginationMetadata
-                {
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    TotalCount = totalCount,
-                    TotalPages = totalPages,
-                    HasPreviousPage = pageNumber > 1,
-                    HasNextPage = pageNumber < totalPages
-                };
-            }
-
-            return users.Any() ? Ok(response) : NotFound(response);
-        }
-        catch (Exception ex)
-        {
-            response.Status = ResponseStatus.Error;
-            response.Message = "An unexpected error occurred.";
-            response.StackTrace = ex.StackTrace;
-            return StatusCode(500, response);
-        }
+        return Ok(response);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto loginDto)
     {
         string? token = await _userService.Login(loginDto.Email, loginDto.Password).ConfigureAwait(false);
-
-        if (string.IsNullOrEmpty(token))
-        {
-            return Unauthorized(new { message = "Invalid credentials" });
-        }
-
         return Ok(new { token });
     }
 
@@ -132,99 +76,44 @@ public class UserController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> RegisterUser([FromBody] UserCreateDto userDto)
     {
-        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
+        if (!ModelState.IsValid)
         {
-            Message = "Failed to register user"
-        };
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
-            }
-
-            UserResponseDto? createdUser = await _userService.AddUserAsync(userDto).ConfigureAwait(false);
-            if (createdUser != null)
-            {
-                response.Status = ResponseStatus.Success;
-                response.Data = createdUser;
-                response.Message = "User registered successfully";
-            }
-
-            return createdUser == null ? BadRequest(response) : Ok(response);
+            return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
         }
-        catch (Exception ex)
-        {
-            response.Status = ResponseStatus.Error;
-            response.Message = "An unexpected error occurred.";
-            response.StackTrace = ex.StackTrace;
-            return StatusCode(500, response);
-        }
+        UserResponseDto? createdUser = await _userService.AddUserAsync(userDto).ConfigureAwait(false);
+
+        response.Data = createdUser;
+        response.Message = "User registered successfully";
+        return Ok(response);
     }
 
     [Authorize]
     [HttpPut("{id}")]
     public async Task<ActionResult<BaseResponse<UserResponseDto>>> UpdateUser(int id, [FromBody] UserUpdateDto userDto)
     {
-        BaseResponse<UserResponseDto> response = new(ResponseStatus.Fail)
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
+        if (!ModelState.IsValid)
         {
-            Message = "User update failed"
-        };
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
-            }
-
-            UserResponseDto? updatedUser = await _userService.UpdateUserAsync(id, userDto).ConfigureAwait(false);
-            if (updatedUser == null)
-            {
-                return NotFound(new { message = "User not found" });
-            }
-
-            response.Status = ResponseStatus.Success;
-            response.Data = updatedUser;
-            response.Message = "User updated successfully";
-            return Ok(response);
+            return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
         }
-        catch (Exception ex)
-        {
-            response.Status = ResponseStatus.Error;
-            response.Message = "An unexpected error occurred.";
-            response.StackTrace = ex.StackTrace;
-            return StatusCode(500, response);
-        }
+
+        UserResponseDto? updatedUser = await _userService.UpdateUserAsync(id, userDto).ConfigureAwait(false);
+
+        response.Data = updatedUser;
+        response.Message = "User updated successfully";
+        return Ok(response);
     }
 
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<ActionResult<BaseResponse<bool>>> DeleteUser(int id)
     {
-        BaseResponse<bool> response = new(ResponseStatus.Fail)
-        {
-            Message = "User deletion failed"
-        };
-        try
-        {
-            bool isDeleted = await _userService.DeleteUserAsync(id).ConfigureAwait(false);
-            if (!isDeleted)
-            {
-                response.Message = "User not found";
-                return NotFound(response);
-            }
+        BaseResponse<bool> response = new(ResponseStatus.Success);
+        bool isDeleted = await _userService.DeleteUserAsync(id).ConfigureAwait(false);
 
-            response.Status = ResponseStatus.Success;
-            response.Data = true;
-            response.Message = "User deleted successfully";
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            response.Status = ResponseStatus.Error;
-            response.Message = "An unexpected error occurred.";
-            response.StackTrace = ex.StackTrace;
-            return StatusCode(500, response);
-        }
+        response.Data = isDeleted;
+        response.Message = "User deleted successfully";
+        return Ok(response);
     }
 }
