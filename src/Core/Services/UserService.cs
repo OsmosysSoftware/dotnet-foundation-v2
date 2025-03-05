@@ -94,7 +94,7 @@ public class UserService : IUserService
         User? createdUser = await _userRepository.AddUserAsync(user).ConfigureAwait(false);
         if (createdUser == null)
         {
-            throw new Exception("Failed to create user.");
+            throw new DatabaseOperationException("Failed to create user.");
         }
 
         return _mapper.Map<UserResponseDto>(createdUser);
@@ -119,7 +119,7 @@ public class UserService : IUserService
         User? updatedUser = await _userRepository.UpdateUserAsync(user).ConfigureAwait(false);
         if (updatedUser == null)
         {
-            throw new Exception("Failed to update user.");
+            throw new DatabaseOperationException("Failed to update user.");
         }
 
         return _mapper.Map<UserResponseDto>(updatedUser);
@@ -136,7 +136,7 @@ public class UserService : IUserService
         bool success = await _userRepository.DeleteUserAsync(user).ConfigureAwait(false);
         if (!success)
         {
-            throw new Exception("Failed to delete user.");
+            throw new DatabaseOperationException("Failed to delete user.");
         }
         return success;
     }

@@ -62,7 +62,7 @@ public class RoleService : IRoleService
         Role? createdRole = await _roleRepository.AddRoleAsync(newRole).ConfigureAwait(false);
         if (createdRole == null)
         {
-            throw new Exception("Failed to create role.");
+            throw new DatabaseOperationException("Failed to create role.");
         }
         return _mapper.Map<RoleResponseDto>(createdRole);
     }
@@ -85,7 +85,7 @@ public class RoleService : IRoleService
         Role? updatedRole = await _roleRepository.UpdateRoleAsync(existingRole).ConfigureAwait(false);
         if (updatedRole == null)
         {
-            throw new Exception("Failed to update role.");
+            throw new DatabaseOperationException("Failed to update role.");
         }
         return _mapper.Map<RoleResponseDto>(updatedRole);
     }
@@ -101,7 +101,7 @@ public class RoleService : IRoleService
         bool success = await _roleRepository.DeleteRoleAsync(role).ConfigureAwait(false);
         if (!success)
         {
-            throw new Exception("Failed to delete role.");
+            throw new DatabaseOperationException("Failed to delete role.");
         }
         return success;
     }
