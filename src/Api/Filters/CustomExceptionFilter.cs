@@ -26,6 +26,7 @@ public class CustomExceptionFilter : ExceptionFilterAttribute
             NotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
             BadRequestException ex => (StatusCodes.Status400BadRequest, ex.Message),
             AlreadyExistsException ex => (StatusCodes.Status409Conflict, ex.Message),
+            DatabaseOperationException ex => (StatusCodes.Status500InternalServerError, ex.Message),
             _ => HandleUnexpectedException(context.Exception)
         };
         response.Message = message;
