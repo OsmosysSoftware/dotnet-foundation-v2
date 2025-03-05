@@ -3,6 +3,7 @@ using Core.Repositories.Interfaces;
 using Core.Services.Interfaces;
 using Core.Entities.DTOs;
 using AutoMapper;
+using Core.Exceptions;
 
 namespace Core.Services;
 
@@ -24,7 +25,7 @@ public class UserService : IUserService
         User? user = await _userRepository.GetUserByEmailAsync(email).ConfigureAwait(false);
         if (user == null || !VerifyPassword(password, user.PasswordHash))
         {
-            return null;
+            throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
         return _tokenService.GenerateToken(user);
@@ -32,14 +33,28 @@ public class UserService : IUserService
 
     public async Task<UserResponseDto?> GetUserByIdAsync(int id)
     {
+        if (id <= 0)
+        {
+            throw new BadRequestException("Id should be greatere than 0.");
+        }
         User? user = await _userRepository.GetUserByIdAsync(id).ConfigureAwait(false);
-        return user == null ? null : _mapper.Map<UserResponseDto>(user);
+        if (user == null)
+        {
+            throw new NotFoundException($"User with ID {id} not found.");
+        }
+
+        return _mapper.Map<UserResponseDto>(user);
     }
 
     public async Task<UserResponseDto?> GetUserByEmailAsync(string email)
     {
         User? user = await _userRepository.GetUserByEmailAsync(email).ConfigureAwait(false);
-        return user == null ? null : _mapper.Map<UserResponseDto>(user);
+        if (user == null)
+        {
+            throw new NotFoundException($"User with email {email} not found.");
+        }
+
+        return _mapper.Map<UserResponseDto>(user);
     }
 
     public async Task<int> GetTotalUsersCountAsync()
@@ -50,6 +65,10 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(int pageNumber, int pageSize)
     {
         IEnumerable<User> users = await _userRepository.GetAllUsersAsync(pageNumber, pageSize).ConfigureAwait(false);
+        if (!users.Any())
+        {
+            throw new NotFoundException("No users found.");
+        }
         return _mapper.Map<IEnumerable<UserResponseDto>>(users);
     }
 
@@ -58,14 +77,19 @@ public class UserService : IUserService
         User? existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email).ConfigureAwait(false);
         if (existingUser != null)
         {
-            return null;
+            throw new AlreadyExistsException($"User with email {userDto.Email} already exists.");
         }
 
         User user = _mapper.Map<User>(userDto);
         user.PasswordHash = HashPassword(userDto.Password);
         user.SetRole(userDto.RoleId);
         User? createdUser = await _userRepository.AddUserAsync(user).ConfigureAwait(false);
-        return createdUser == null ? null : _mapper.Map<UserResponseDto>(createdUser);
+        if (createdUser == null)
+        {
+            throw new Exception("Failed to create user.");
+        }
+
+        return _mapper.Map<UserResponseDto>(createdUser);
     }
 
     public async Task<UserResponseDto?> UpdateUserAsync(int id, UserUpdateDto userDto)
@@ -73,19 +97,24 @@ public class UserService : IUserService
         User? user = await _userRepository.GetUserByIdAsync(id).ConfigureAwait(false);
         if (user == null)
         {
-            return null;
+            throw new NotFoundException($"User with ID {id} not found.");
         }
 
         User? existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email).ConfigureAwait(false);
         if (existingUser != null && existingUser.Id != user.Id)
         {
-            return null;
+            throw new AlreadyExistsException($"User with email {userDto.Email} already exists.");
         }
 
         _mapper.Map(userDto, user);
         user.SetRole(userDto.RoleId);
         User? updatedUser = await _userRepository.UpdateUserAsync(user).ConfigureAwait(false);
-        return updatedUser == null ? null : _mapper.Map<UserResponseDto>(updatedUser);
+        if (updatedUser == null)
+        {
+            throw new Exception("Failed to update user.");
+        }
+
+        return _mapper.Map<UserResponseDto>(updatedUser);
     }
 
     public async Task<bool> DeleteUserAsync(int id)
@@ -93,10 +122,15 @@ public class UserService : IUserService
         User? user = await _userRepository.GetUserByIdAsync(id).ConfigureAwait(false);
         if (user == null)
         {
-            return false;
+            throw new NotFoundException($"User with ID {id} not found.");
         }
 
-        return await _userRepository.DeleteUserAsync(user).ConfigureAwait(false);
+        bool success = await _userRepository.DeleteUserAsync(user).ConfigureAwait(false);
+        if (!success)
+        {
+            throw new Exception("Failed to delete user.");
+        }
+        return success;
     }
 
     private static string HashPassword(string password)
