@@ -87,7 +87,7 @@ public class RoleController : ControllerBase
         bool isDeleted = await _roleService.DeleteRoleAsync(id).ConfigureAwait(false);
 
         response.Data = isDeleted;
-        response.Message = "Role deleted successfully";
+        response.Message = "Role deactivated successfully";
         return Ok(response);
     }
 }

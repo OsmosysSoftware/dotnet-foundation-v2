@@ -113,7 +113,7 @@ public class UserController : ControllerBase
         bool isDeleted = await _userService.DeleteUserAsync(id).ConfigureAwait(false);
 
         response.Data = isDeleted;
-        response.Message = "User deleted successfully";
+        response.Message = "User deactivated successfully";
         return Ok(response);
     }
 }

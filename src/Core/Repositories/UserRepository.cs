@@ -56,7 +56,11 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> DeleteUserAsync(User user)
     {
-        _context.Users.Remove(user);
+        // For Hard delete
+        // _context.Users.Remove(user);
+
+        // For Soft delete
+        _context.Users.Update(user);
         return await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
     }
 }

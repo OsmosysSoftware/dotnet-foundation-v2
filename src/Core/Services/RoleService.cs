@@ -98,6 +98,12 @@ public class RoleService : IRoleService
             throw new NotFoundException($"Role with ID {id} not found.");
         }
 
+        if (!role.Status)
+        {
+            throw new BadRequestException($"Role with ID {id} is already deactivated.");
+        }
+
+        role.Status = false;
         bool success = await _roleRepository.DeleteRoleAsync(role).ConfigureAwait(false);
         if (!success)
         {

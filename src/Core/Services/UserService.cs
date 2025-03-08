@@ -133,6 +133,12 @@ public class UserService : IUserService
             throw new NotFoundException($"User with ID {id} not found.");
         }
 
+        if (!user.Status)  // Already soft deleted
+        {
+            throw new BadRequestException($"User with ID {id} is already deactivated.");
+        }
+        
+        user.Status = false; // Soft delete
         bool success = await _userRepository.DeleteUserAsync(user).ConfigureAwait(false);
         if (!success)
         {
