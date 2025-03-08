@@ -28,6 +28,14 @@ public class DatabaseContext : DbContext
             .HasForeignKey(log => log.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Global query filter for Roles to fetch active records
+        modelBuilder.Entity<Role>()
+            .HasQueryFilter(role => role.Status);
+
+        // Global query filter for Users to fetch active records
+        modelBuilder.Entity<User>()
+            .HasQueryFilter(user => user.Status);
+
         // Global query filter for UserLogs to fetch active records
         modelBuilder.Entity<UserLog>()
             .HasQueryFilter(log => log.Status);
