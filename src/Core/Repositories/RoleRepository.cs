@@ -58,7 +58,11 @@ public class RoleRepository : IRoleRepository
 
     public async Task<bool> DeleteRoleAsync(Role role)
     {
-        _context.Roles.Remove(role);
+        // For Hard delete
+        // _context.Roles.Remove(role);
+
+        // For Soft delete
+        _context.Roles.Update(role);
         return await _context.SaveChangesAsync().ConfigureAwait(false) > 0;
     }
 }
