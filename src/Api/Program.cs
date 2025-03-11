@@ -7,6 +7,8 @@ using Core.Services.Interfaces;
 using Core.Services;
 using Core.Repositories.Interfaces;
 using Core.Repositories;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,13 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add Health Checks with UI support
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<DatabaseContext>("database");
+
+builder.Services.AddHealthChecksUI()
+    .AddInMemoryStorage();  // Stores health check results in memory
+
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
@@ -61,6 +70,17 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Health Checks Endpoints
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecksUI(options =>
+{
+    options.UIPath = "/health-ui";  // UI for health checks
+});
 
 app.Run();
 
