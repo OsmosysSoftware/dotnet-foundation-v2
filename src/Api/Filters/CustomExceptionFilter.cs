@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Api.Models.Common;
 using Api.Models.Enums;
 using Core.Exceptions;
+using Microsoft.AspNetCore.Http;
 
 // /*
 // Added to suppress the following warning :
