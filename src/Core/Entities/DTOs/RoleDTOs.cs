@@ -9,15 +9,15 @@ public abstract class RoleBaseDto
     public string Name { get; set; } = string.Empty;
 }
 
-public class RoleCreateDto: RoleBaseDto
+public class RoleCreateDto : RoleBaseDto
 {
 }
 
-public class RoleUpdateDto: RoleBaseDto
+public class RoleUpdateDto : RoleBaseDto
 {
 }
 
-public class RoleResponseDto: RoleBaseDto
+public class RoleResponseDto : RoleBaseDto
 {
     public int Id { get; set; }
 }

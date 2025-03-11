@@ -45,7 +45,7 @@ builder.Services.AddSwaggerGen();
 // Add Health Checks with UI support
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("database");
-    
+
 builder.Services.AddHealthChecksUI()
     .AddInMemoryStorage();
 

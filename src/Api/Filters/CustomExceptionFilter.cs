@@ -25,7 +25,7 @@ public class CustomExceptionFilter : ExceptionFilterAttribute
     public override void OnException(ExceptionContext context)
     {
         BaseResponse<int> response = new BaseResponse<int>(ResponseStatus.Error);
-        
+
         (int statusCode, string message) = context.Exception switch
         {
             UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized, ex.Message),

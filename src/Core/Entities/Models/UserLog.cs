@@ -16,7 +16,7 @@ public class UserLog
 
     [Column("user_id")]
     public int UserId { get; set; }
-    
+
     // Navigation Property (Read-Only to avoid UserId conflicts)
     [ForeignKey(nameof(UserId))]
     public virtual User? User { get; private set; }
