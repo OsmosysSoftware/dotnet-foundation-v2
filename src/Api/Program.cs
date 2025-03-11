@@ -42,11 +42,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Health Checks with UI support
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<DatabaseContext>("database");
-
 builder.Services.AddHealthChecksUI()
-    .AddInMemoryStorage();  // Stores health check results in memory
+    .AddInMemoryStorage();
 
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
