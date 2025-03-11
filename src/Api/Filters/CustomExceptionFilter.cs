@@ -24,39 +24,25 @@ public class CustomExceptionFilter : ExceptionFilterAttribute
     public override void OnException(ExceptionContext context)
     {
         BaseResponse<int> response = new BaseResponse<int>(ResponseStatus.Error);
-        int statusCode;
-
-        if (context.Exception is UnauthorizedAccessException)
+        
+        (int statusCode, string message) = context.Exception switch
         {
-            statusCode = StatusCodes.Status401Unauthorized;
-            response.Message = context.Exception.Message;
-        }
-        else if (context.Exception is NotFoundException)
-        {
-            statusCode = StatusCodes.Status404NotFound;
-            response.Message = context.Exception.Message;
-        }
-        else if (context.Exception is BadRequestException)
-        {
-            statusCode = StatusCodes.Status400BadRequest;
-            response.Message = context.Exception.Message;
-        }
-        else if (context.Exception is AlreadyExistsException)
-        {
-            statusCode = StatusCodes.Status409Conflict;
-            response.Message = context.Exception.Message;
-        }
-        else
-        {
-            _logger.LogError($"Internal server exception: {context.Exception.ToString()}");
-
-            statusCode = StatusCodes.Status500InternalServerError;
-            response.Message = $"An internal server error has occurred: {context.Exception.Message}";
-        }
-
+            UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized, ex.Message),
+            NotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
+            BadRequestException ex => (StatusCodes.Status400BadRequest, ex.Message),
+            AlreadyExistsException ex => (StatusCodes.Status409Conflict, ex.Message),
+            _ => HandleUnexpectedException(context.Exception)
+        };
+        response.Message = message;
         context.Result = new JsonResult(response)
         {
             StatusCode = statusCode
         };
+    }
+
+    private (int StatusCode, string Message) HandleUnexpectedException(Exception ex)
+    {
+        _logger.LogError(ex, "An unexpected error occurred");
+        return (StatusCodes.Status500InternalServerError, "An unexpected error occurred. Please try again later.");
     }
 }
