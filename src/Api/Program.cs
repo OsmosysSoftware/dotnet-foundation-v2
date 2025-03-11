@@ -9,6 +9,7 @@ using Core.Repositories.Interfaces;
 using Core.Repositories;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Api.HealthChecks;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Health Checks with UI support
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database");
+    
 builder.Services.AddHealthChecksUI()
     .AddInMemoryStorage();
 
