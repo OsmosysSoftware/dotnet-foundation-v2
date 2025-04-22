@@ -66,10 +66,13 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequestDto loginDto)
+    public async Task<ActionResult<BaseResponse<string>>> Login([FromBody] LoginRequestDto loginDto)
     {
+        BaseResponse<string> response = new(ResponseStatus.Success);
         string? token = await _userService.Login(loginDto.Email, loginDto.Password).ConfigureAwait(false);
-        return Ok(new { token });
+        response.Data = token;
+        response.Message = "Login Successful";
+        return Ok(response);
     }
 
 
