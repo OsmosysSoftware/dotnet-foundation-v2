@@ -42,6 +42,10 @@ public class RoleService : IRoleService
 
     public async Task<IEnumerable<RoleResponseDto>> GetAllRolesAsync(int pageNumber, int pageSize)
     {
+        if (pageNumber <= 0 || pageSize <= 0)
+        {
+            throw new BadRequestException("pageNumber and pageSize must be greater than zero.");
+        }
         IEnumerable<Role> roles = await _roleRepository.GetAllRolesAsync(pageNumber, pageSize).ConfigureAwait(false);
         if (!roles.Any())
         {

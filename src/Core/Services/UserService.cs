@@ -24,6 +24,11 @@ public class UserService : IUserService
 
     public async Task<string?> Login(string email, string password)
     {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            throw new BadRequestException("Email and password are required.");
+        }
+
         User? user = await _userRepository.GetUserByEmailAsync(email).ConfigureAwait(false);
         if (user == null || !VerifyPassword(password, user.PasswordHash))
         {
@@ -66,6 +71,10 @@ public class UserService : IUserService
 
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(int pageNumber, int pageSize)
     {
+        if (pageNumber <= 0 || pageSize <= 0)
+        {
+            throw new BadRequestException("pageNumber and pageSize must be greater than zero.");
+        }
         IEnumerable<User> users = await _userRepository.GetAllUsersAsync(pageNumber, pageSize).ConfigureAwait(false);
         if (!users.Any())
         {
@@ -112,6 +121,12 @@ public class UserService : IUserService
         if (existingUser != null && existingUser.Id != user.Id)
         {
             throw new AlreadyExistsException($"User with email {userDto.Email} already exists.");
+        }
+
+        Role? role = await _roleRepository.GetRoleByIdAsync(userDto.RoleId).ConfigureAwait(false);
+        if (role == null)
+        {
+            throw new NotFoundException($"Role with ID {userDto.RoleId} not found.");
         }
 
         _mapper.Map(userDto, user);
