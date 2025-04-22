@@ -121,6 +121,12 @@ builder.Services.AddDbContext<DatabaseContext>(options =>
 IConfigurationSection jwtSettings = builder.Configuration.GetSection("JwtSettings");
 
 byte[] key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is missing"));
+if (key.Length < 32)
+{
+    throw new InvalidOperationException("JWT Key length must be at least 32 bytes (256 bits).");
+}
+string issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer is missing");
+string audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience is missing");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -135,8 +141,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
+        ValidIssuer = issuer,
+        ValidAudience = audience,
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
 });
