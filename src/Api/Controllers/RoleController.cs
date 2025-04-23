@@ -1,3 +1,5 @@
+using Api.Models.Common;
+using Api.Models.Enums;
 using Core.Entities.DTOs;
 using Core.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -16,67 +18,76 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetRoleById(int id)
+    public async Task<ActionResult<BaseResponse<RoleResponseDto>>> GetRoleById(int id)
     {
+        BaseResponse<RoleResponseDto> response = new(ResponseStatus.Success);
         RoleResponseDto? role = await _roleService.GetRoleByIdAsync(id).ConfigureAwait(false);
-        if (role == null)
-        {
-            return NotFound(new { message = "Role not found" });
-        }
-
-        return Ok(role);
+        response.Data = role;
+        response.Message = "Role retrieved successfully";
+        return Ok(response);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllRoles()
+    public async Task<ActionResult<BaseResponse<IEnumerable<RoleResponseDto>>>> GetAllRoles([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        IEnumerable<RoleResponseDto> roles = await _roleService.GetAllRolesAsync().ConfigureAwait(false);
-        return Ok(roles);
+        BaseResponse<IEnumerable<RoleResponseDto>> response = new(ResponseStatus.Success);
+        IEnumerable<RoleResponseDto> roles = await _roleService.GetAllRolesAsync(pageNumber, pageSize).ConfigureAwait(false);
+        int totalCount = await _roleService.GetTotalRolesCountAsync().ConfigureAwait(false);
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        response.Data = roles;
+        response.Message = "Roles retrieved successfully";
+        response.Pagination = new PaginationMetadata
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasPreviousPage = pageNumber > 1,
+            HasNextPage = pageNumber < totalPages
+        };
+        return Ok(response);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateRole([FromBody] RoleCreateDto roleDto)
+    public async Task<ActionResult<BaseResponse<RoleResponseDto?>>> CreateRole([FromBody] RoleCreateDto roleDto)
     {
+        BaseResponse<RoleResponseDto> response = new(ResponseStatus.Success);
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
         }
 
         RoleResponseDto? createdRole = await _roleService.CreateRoleAsync(roleDto).ConfigureAwait(false);
-        if (createdRole == null)
-        {
-            return BadRequest(new { message = "Failed to create role" });
-        }
-
-        return CreatedAtAction(nameof(GetRoleById), new { id = createdRole.Id }, createdRole);
+        response.Data = createdRole;
+        response.Message = "Role created successfully";
+        return Ok(response);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateRole(int id, [FromBody] RoleUpdateDto roleDto)
+    public async Task<ActionResult<BaseResponse<RoleResponseDto>>> UpdateRole(int id, [FromBody] RoleUpdateDto roleDto)
     {
+        BaseResponse<RoleResponseDto> response = new(ResponseStatus.Success);
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
         }
 
-        bool success = await _roleService.UpdateRoleAsync(id, roleDto).ConfigureAwait(false);
-        if (!success)
-        {
-            return NotFound(new { message = "Role not found or update failed" });
-        }
+        RoleResponseDto? updatedRole = await _roleService.UpdateRoleAsync(id, roleDto).ConfigureAwait(false);
 
-        return NoContent();
+        response.Data = updatedRole;
+        response.Message = "Role updated successfully";
+        return Ok(response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteRole(int id)
+    public async Task<ActionResult<BaseResponse<bool>>> DeleteRole(int id)
     {
-        bool success = await _roleService.DeleteRoleAsync(id).ConfigureAwait(false);
-        if (!success)
-        {
-            return NotFound(new { message = "Role not found or deletion failed" });
-        }
+        BaseResponse<bool> response = new(ResponseStatus.Success);
+        bool isDeleted = await _roleService.DeleteRoleAsync(id).ConfigureAwait(false);
 
-        return NoContent();
+        response.Data = isDeleted;
+        response.Message = "Role deactivated successfully";
+        return Ok(response);
     }
 }

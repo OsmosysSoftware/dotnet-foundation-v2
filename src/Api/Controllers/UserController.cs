@@ -1,5 +1,8 @@
+using Api.Models.Common;
+using Api.Models.Enums;
 using Core.Entities.DTOs;
 using Core.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -15,55 +18,105 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    [Authorize]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetUserById(int id)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserById(int id)
     {
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
         UserResponseDto? user = await _userService.GetUserByIdAsync(id).ConfigureAwait(false);
-        return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
+
+        response.Data = user;
+        response.Message = "User retrieved successfully";
+        return Ok(response);
     }
 
+    [Authorize]
     [HttpGet("email/{email}")]
-    public async Task<IActionResult> GetUserByEmail(string email)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> GetUserByEmail(string email)
     {
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
         UserResponseDto? user = await _userService.GetUserByEmailAsync(email).ConfigureAwait(false);
-        return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
+
+        response.Data = user;
+        response.Message = "User retrieved successfully";
+        return Ok(response);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<IActionResult> GetAllUsers()
+    public async Task<ActionResult<BaseResponse<IEnumerable<UserResponseDto>>>> GetAllUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync().ConfigureAwait(false);
-        return Ok(users);
+        BaseResponse<IEnumerable<UserResponseDto>> response = new(ResponseStatus.Success);
+        IEnumerable<UserResponseDto> users = await _userService.GetAllUsersAsync(pageNumber, pageSize).ConfigureAwait(false);
+        int totalCount = await _userService.GetTotalUsersCountAsync().ConfigureAwait(false);
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        response.Data = users;
+        response.Message = "Users retrieved successfully";
+        response.Pagination = new PaginationMetadata
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasPreviousPage = pageNumber > 1,
+            HasNextPage = pageNumber < totalPages
+        };
+        return Ok(response);
     }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<BaseResponse<string>>> Login([FromBody] LoginRequestDto loginDto)
+    {
+        BaseResponse<string> response = new(ResponseStatus.Success);
+        string? token = await _userService.Login(loginDto.Email, loginDto.Password).ConfigureAwait(false);
+        response.Data = token;
+        response.Message = "Login Successful";
+        return Ok(response);
+    }
+
 
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterUser([FromBody] UserCreateDto userDto)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> RegisterUser([FromBody] UserCreateDto userDto)
     {
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
         }
+        UserResponseDto? createdUser = await _userService.AddUserAsync(userDto).ConfigureAwait(false);
 
-        bool success = await _userService.AddUserAsync(userDto).ConfigureAwait(false);
-        return success ? StatusCode(201, new { message = "User registered successfully" }) : BadRequest(new { message = "Failed to register user" });
+        response.Data = createdUser;
+        response.Message = "User registered successfully";
+        return Ok(response);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDto userDto)
+    public async Task<ActionResult<BaseResponse<UserResponseDto>>> UpdateUser(int id, [FromBody] UserUpdateDto userDto)
     {
+        BaseResponse<UserResponseDto> response = new(ResponseStatus.Success);
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return ModelValidationBadRequest.GenerateErrorResponse(ModelState);
         }
 
-        bool success = await _userService.UpdateUserAsync(id, userDto).ConfigureAwait(false);
-        return success ? NoContent() : NotFound(new { message = "User not found or update failed" });
+        UserResponseDto? updatedUser = await _userService.UpdateUserAsync(id, userDto).ConfigureAwait(false);
+
+        response.Data = updatedUser;
+        response.Message = "User updated successfully";
+        return Ok(response);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(int id)
+    public async Task<ActionResult<BaseResponse<bool>>> DeleteUser(int id)
     {
-        bool success = await _userService.DeleteUserAsync(id).ConfigureAwait(false);
-        return success ? NoContent() : NotFound(new { message = "User not found or deletion failed" });
+        BaseResponse<bool> response = new(ResponseStatus.Success);
+        bool isDeleted = await _userService.DeleteUserAsync(id).ConfigureAwait(false);
+
+        response.Data = isDeleted;
+        response.Message = "User deactivated successfully";
+        return Ok(response);
     }
 }

@@ -5,10 +5,12 @@ namespace Core.Services.Interfaces;
 
 public interface IUserService
 {
+    Task<string?> Login(string email, string password);
     Task<UserResponseDto?> GetUserByIdAsync(int id);
     Task<UserResponseDto?> GetUserByEmailAsync(string email);
-    Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
-    Task<bool> AddUserAsync(UserCreateDto user);
-    Task<bool> UpdateUserAsync(int id, UserUpdateDto user);
+    Task<int> GetTotalUsersCountAsync();
+    Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(int pageNumber, int pageSize);
+    Task<UserResponseDto?> AddUserAsync(UserCreateDto user);
+    Task<UserResponseDto?> UpdateUserAsync(int id, UserUpdateDto user);
     Task<bool> DeleteUserAsync(int id);
 }

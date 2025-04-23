@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Api.Models.Enums;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Api.Models.Common;
 
@@ -52,48 +53,56 @@ public class BaseResponse<T>
 public class ModelValidationBadRequest
 {
     /// <summary>
-    /// Generates a BadRequestObjectResult based on the model state errors.
+    /// Generates a standardized BadRequest response with model validation errors.
     /// </summary>
-    /// <param name="actionContext">The action context containing the model state.</param>
+    /// <param name="modelState">The model state containing validation errors.</param>
     /// <returns>A BadRequestObjectResult encapsulating the validation errors.</returns>
-    public static BadRequestObjectResult ModelValidationErrorResponse(ActionContext actionContext)
+    public static BadRequestObjectResult GenerateErrorResponse(ModelStateDictionary modelState)
     {
         return new BadRequestObjectResult(new BaseResponse<int>(ResponseStatus.Error)
         {
-            Errors = actionContext.ModelState
-                .Where(modelError => modelError.Value != null && modelError.Value.Errors.Any())
+            Errors = modelState
+                .Where(entry => entry.Value != null && entry.Value.Errors.Any())
                 .ToDictionary(
-                    modelError => modelError.Key,
-                    modelError => modelError.Value != null
-                            ? modelError.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                            : new List<string>()
+                    entry => entry.Key,
+                    entry => entry.Value!.Errors.Select(error => error.ErrorMessage).ToList()
                 )
         });
     }
 }
 
 /// <summary>
-/// Provides utilities for generating bad request responses based on model validation errors.
+/// Represents metadata for paginated responses, including page details and navigation indicators.
 /// </summary>
 public class PaginationMetadata
 {
+    /// <summary>
+    /// Gets or sets the current page number.
+    /// </summary>
+    public int PageNumber { get; set; }
+
     /// <summary>
     /// Gets or sets the number of items per page.
     /// </summary>
     public int PageSize { get; set; }
 
     /// <summary>
-    /// Gets or sets the total count of items (if available).
+    /// Gets or sets the total number of items.
     /// </summary>
-    public int? TotalCount { get; set; }
+    public int TotalCount { get; set; }
 
     /// <summary>
-    /// Gets or sets the cursor for the previous page.
+    /// Gets or sets the total number of pages.
     /// </summary>
-    public DateTime? PrevCursor { get; set; }
+    public int TotalPages { get; set; }
 
     /// <summary>
-    /// Gets or sets the cursor for the next page.
+    /// Gets or sets a value indicating whether there is a previous page.
     /// </summary>
-    public DateTime? NextCursor { get; set; }
+    public bool HasPreviousPage { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether there is a next page.
+    /// </summary>
+    public bool HasNextPage { get; set; }
 }

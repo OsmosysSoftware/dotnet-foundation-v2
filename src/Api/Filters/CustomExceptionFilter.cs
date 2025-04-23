@@ -5,12 +5,6 @@ using Api.Models.Enums;
 using Core.Exceptions;
 using Microsoft.AspNetCore.Http;
 
-// /*
-// Added to suppress the following warning :
-// Warning : Add a public read-only property accessor for positional argument logger of Attribute CustomExceptionFilter
-// */
-// #pragma warning disable CA1019
-
 namespace Api.Filters;
 
 public class CustomExceptionFilter : ExceptionFilterAttribute
@@ -24,16 +18,18 @@ public class CustomExceptionFilter : ExceptionFilterAttribute
 
     public override void OnException(ExceptionContext context)
     {
-        BaseResponse<int> response = new BaseResponse<int>(ResponseStatus.Error);
+        BaseResponse<int> response = new BaseResponse<int>(ResponseStatus.Fail);
 
-        (int statusCode, string message) = context.Exception switch
+        (int statusCode, string message, ResponseStatus status) = context.Exception switch
         {
-            UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized, ex.Message),
-            NotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
-            BadRequestException ex => (StatusCodes.Status400BadRequest, ex.Message),
-            AlreadyExistsException ex => (StatusCodes.Status409Conflict, ex.Message),
+            UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized, ex.Message, ResponseStatus.Fail),
+            NotFoundException ex => (StatusCodes.Status404NotFound, ex.Message, ResponseStatus.Fail),
+            BadRequestException ex => (StatusCodes.Status400BadRequest, ex.Message, ResponseStatus.Fail),
+            AlreadyExistsException ex => (StatusCodes.Status409Conflict, ex.Message, ResponseStatus.Fail),
+            DatabaseOperationException ex => (StatusCodes.Status500InternalServerError, ex.Message, ResponseStatus.Error),
             _ => HandleUnexpectedException(context.Exception)
         };
+        response.Status = status;
         response.Message = message;
         context.Result = new JsonResult(response)
         {
@@ -41,9 +37,9 @@ public class CustomExceptionFilter : ExceptionFilterAttribute
         };
     }
 
-    private (int StatusCode, string Message) HandleUnexpectedException(Exception ex)
+    private (int StatusCode, string Message, ResponseStatus status) HandleUnexpectedException(Exception ex)
     {
         _logger.LogError(ex, "An unexpected error occurred");
-        return (StatusCodes.Status500InternalServerError, "An unexpected error occurred. Please try again later.");
+        return (StatusCodes.Status500InternalServerError, "An unexpected error occurred. Please try again later.", ResponseStatus.Error);
     }
 }

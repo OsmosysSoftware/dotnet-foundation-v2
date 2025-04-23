@@ -13,7 +13,7 @@ public class UserBaseDto
     [Required, EmailAddress, MaxLength(255)]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
+    [Required, Range(1, int.MaxValue, ErrorMessage = "RoleId must be greater than 0.")]
     public int RoleId { get; set; }
 }
 
@@ -33,3 +33,13 @@ public class UserResponseDto
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
 }
+
+public class LoginRequestDto
+{
+    [Required, EmailAddress, MaxLength(255)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    public string Password { get; set; } = string.Empty;
+}
+
