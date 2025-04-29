@@ -98,7 +98,7 @@ src/
 
 ## Configuration ⚙️
 
-The project uses **DotNetEnv** to manage environment variables from a `.env` file.
+The project uses **appsettings.json** to manage environment variables.
 > Make sure to configure your **database** and **JWT settings** before running.
 
 
