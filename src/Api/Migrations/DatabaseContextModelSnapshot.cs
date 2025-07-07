@@ -87,7 +87,8 @@ namespace Api.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("password_hash");
 
                     b.Property<int>("RoleId")
